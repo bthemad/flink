@@ -1,3 +1,5 @@
 flink-training-exercises
 .idea
 target
+data
+flink-java-project/dependency-reduced-pom.xml

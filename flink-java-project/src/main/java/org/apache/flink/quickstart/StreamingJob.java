@@ -18,6 +18,12 @@
 
 package org.apache.flink.quickstart;
 
+import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
+import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiFareSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
+import org.apache.flink.streaming.api.TimeCharacteristic;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -34,32 +40,27 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  */
 public class StreamingJob {
 
+    private final static int maxDelay = 60;
+    private final static int servingSpeed = 600;
+
 	public static void main(String[] args) throws Exception {
-		// set up the streaming execution environment
-		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-		env.fromElements(1, 2, 3).print();
+        // get an ExecutionEnvironment
+        StreamExecutionEnvironment env =
+                StreamExecutionEnvironment.getExecutionEnvironment();
 
-		/*
-		 * Here, you can start creating your execution plan for Flink.
-		 *
-		 * Start with getting some data from the environment, like
-		 * 	env.readTextFile(textPath);
-		 *
-		 * then, transform the resulting DataStream<String> using operations
-		 * like
-		 * 	.filter()
-		 * 	.flatMap()
-		 * 	.join()
-		 * 	.coGroup()
-		 *
-		 * and many more.
-		 * Have a look at the programming guide for the Java API:
-		 *
-		 * http://flink.apache.org/docs/latest/apis/streaming/index.html
-		 *
-		 */
+        // configure event-time processing
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
-		// execute program
-		env.execute("Flink Streaming Java API Skeleton");
+        // get the taxi ride data stream
+        DataStream<TaxiRide> rides = env.addSource(
+                new TaxiRideSource("/Users/alex/study/flink/data/nycTaxiRides.gz", maxDelay, servingSpeed));
+
+        // get the taxi fare data stream
+        DataStream<TaxiFare> fares = env.addSource(
+               new TaxiFareSource("/Users/alex/study/flink/data/nycTaxiFares.gz", maxDelay, servingSpeed));
+
+        rides.print();
+        fares.print();
+        env.execute("Flink Batch Java API Skeleton");
 	}
 }
